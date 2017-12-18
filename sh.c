@@ -130,44 +130,115 @@ runcmd(struct cmd *cmd)
   exit();
 }
 
-int
-getcmd(char *buf, int nbuf)
-{
-  printf(2, "$ ");
+char path[256];
+char * username;
+int getcmd(char *buf, int nbuf){
+						   
+ 
+  printf(2, "%s@FailOS:%s~$ ",username,path);
   memset(buf, 0, nbuf);
   gets(buf, nbuf);
-  if(buf[0] == 0) // EOF
+  if(buf[0] == 0){ // EOF
     return -1;
+  }
   return 0;
 }
 
-int
-main(void)
-{
+int main(int argc, char * argv[]){
+  username = argv[0];
+  char * dir = malloc(100);
+  //printf(1,"%s\n", username);
   static char buf[100];
+  strcpy(dir , "/home/");
+  strcpy(dir + strlen(dir), username);
+  chdir(dir);
+  int i = 0;
+  for (i = 0; i < strlen(dir); i++){
+      path[i] = dir[i];
+  }
+  path[i] = '/';
+  int lastPos = i;
   int fd;
+  int bash;  
 
-  // Ensure that three file descriptors are open.
+  // Assumes three file descriptors open.
   while((fd = open("console", O_RDWR)) >= 0){
     if(fd >= 3){
       close(fd);
       break;
     }
   }
-
+  
+  //Create file if it's not there
+  bash = open("/.bash_history",O_CREATE | O_RDWR);
   // Read and run input commands.
-  while(getcmd(buf, sizeof(buf)) >= 0){
-    if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
-      // Chdir must be called by the parent, not the child.
+  while(getcmd(buf, sizeof(buf)) >= 0){ 
+
+    if(buf[0]!='\n'){
+      write(bash, buf, strlen(buf));
+    }
+    if(buf[0] == 'e' && buf[1] == 'x' && buf[2] == 'i' && buf[3] == 't'){
+      exit();
+    }
+    else if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
+      // Clumsy but will have to do for now.
+      // Chdir has no effect on the parent if run in the child.
       buf[strlen(buf)-1] = 0;  // chop \n
-      if(chdir(buf+3) < 0)
+      if(chdir(buf+3) < 0){
         printf(2, "cannot cd %s\n", buf+3);
+      }
+      else{
+        if(buf[3] == '.' && buf[4] == '.'){
+          path[strlen(path)-1] = '\0';
+          while(path[lastPos] != '/'){
+            path[lastPos--] = '\0';
+          }
+        }
+        else if (buf[3] == '/' && (buf[4]==' ' || buf[4] == '\0')){
+          path[0] = '/';
+          int i;
+          for (i = 1; i < strlen(path); i++){
+            path[i] = 0;
+          }
+          lastPos = 1;
+        }
+        else{
+          int iter = 3;
+          while(buf[iter] != '\0'){
+            path[lastPos++] = buf[iter];
+            iter++;
+          }
+          path[lastPos] = '/';
+          lastPos++;
+          iter = 3;
+        }
+      }
       continue;
     }
-    if(fork1() == 0)
-      runcmd(parsecmd(buf));
+    else if(buf[0] == 'p' && buf[1] == 'w' && buf[2] == 'd' && (buf[3] == ' ' || buf[3]=='\n')){
+      //Get the directory to print it now
+      printf(2,"%s\n",path);
+      
+    }
+    else if(fork1() == 0){
+      if (buf[0] == '\n'){
+        runcmd(parsecmd(buf));
+      }
+      else{
+        char p[sizeof(buf)+1];
+        p[0] = '/';
+        int i = 0;
+        while(buf[i]!='\0'){
+          p[i+1] = buf[i];
+          i++;
+        }
+        runcmd(parsecmd(p));
+      }
+    }
+    
     wait();
-  }
+  }  
+  close(bash);
   exit();
 }
 
