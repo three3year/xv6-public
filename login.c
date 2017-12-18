@@ -49,7 +49,8 @@ int checkpasswd(int fd, char *user, char *passwd){
 }
 
 int main(void){
-	int pid, wpid, fd;
+	//int pid, wpid, fd;
+	int pid, fd;
 	int loggedIn = 1;
 	mkdir("/home/");
 	while(loggedIn){
