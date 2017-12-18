@@ -84,9 +84,9 @@ int main(void){
 			printf(1,"wrong username or password\n");
 		}
 		close(fd);
-		while((wpid=wait()) >= 0 && wpid != pid)
+		/*while((wpid=wait()) >= 0 && wpid != pid)
 		  printf(1, "zombie!\n"); 
-			
+			*/
 	}
 	
 	wait();
