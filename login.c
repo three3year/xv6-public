@@ -5,8 +5,17 @@
 #define MAXLEN 30
 char *argv[] = { "sh",  0};
 
+struct account
+{
+	char name[MAXLEN];
+	char uid[MAXLEN];
+	char homePath[MAXLEN];
+	char groupIdList[MAXLEN]
+	
+}nowAccount;
+
 int checkpasswd(int fd, char *user, char *passwd){
-  int i, n, c,l;
+  int i, n, c, l, t;
   char ipasswd[MAXLEN];
   char iuser[MAXLEN];
   char buf[1024];
@@ -39,6 +48,21 @@ int checkpasswd(int fd, char *user, char *passwd){
       	strcpy(dirToCreate + strlen(dirToCreate), user);
       	//printf(1,"%s\n", dirToCreate);
       	mkdir(dirToCreate);
+		
+		nowAccount.name = user;
+		
+		t = 0;
+		while(i < n && buf[i] != ':' )nowAccount.uid[t++] = buf[i++];
+		nowAccount.uid[t] = '\0';
+      		
+		t = 0;
+		while(i < n && buf[i] != ':' )nowAccount.homePath[t++] = buf[i++];	
+		nowAccount.homePath[t] = '\0'
+			
+		t = 0;
+		while(i < n && buf[i] != ':' )nowAccount.groupIdList[t++] = buf[i++];	
+		nowAccount.groupIdList[t] = '\0'
+		
       	return 1;
       }
       while(i <n && buf[i++] != '\n');
@@ -95,3 +119,25 @@ int main(void){
 	//Unreachable line but I like to place it there
 	return 0;
 }
+
+char* getGroupIdList()
+{
+	return nowAccount.groupIdList;
+}
+
+char* getHomePath()
+{
+	return nowAccount.homePath;
+}
+
+
+
+
+
+
+
+
+
+
+
+
