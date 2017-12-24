@@ -14,12 +14,15 @@ struct account
 	
 };
 
-struct account *nowAccount;
+struct account nowAccount;
 
 int checkpasswd(int fd, char *user, char *passwd){
   int i, n, c, l, t;
   char ipasswd[MAXLEN];
   char iuser[MAXLEN];
+  char iuid[MAXLEN];
+  char ihomePath[MAXLEN];
+  char igroupIdList[MAXLEN];
   char buf[1024];
   l = c = 0;
   //chop the \n
@@ -41,6 +44,25 @@ int checkpasswd(int fd, char *user, char *passwd){
       while(i <n && buf[i] != ':')ipasswd[l++] = buf[i++];
       if(i == n) break;
       ipasswd[l] = '\0';
+	  i++;
+	  
+	  l = 0;
+	  while(i <n && buf[i] != ':')iuid[l++] = buf[i++];
+      if(i == n) break;
+      iuid[l] = '\0';
+	  i++;
+	  
+	  l = 0;
+	  while(i <n && buf[i] != ':')ihomePath[l++] = buf[i++];
+      if(i == n) break;
+      ihomePath[l] = '\0';
+	  i++;
+	  
+	  l = 0;
+	  while(i <n && buf[i] != ':')igroupIdList[l++] = buf[i++];
+      if(i == n) break;
+      igroupIdList[l] = '\0';
+	  
       c = 0;
       l = 0;
      //printf(1,"%s::%s\n", user,iuser);
@@ -54,25 +76,35 @@ int checkpasswd(int fd, char *user, char *passwd){
 		t = 0;
 		while(user[t] != '\0')
 		{
-			nowAccount->name[t] = user[t];
+			nowAccount.name[t] = user[t];
 			t = t + 1;
 		}
-		nowAccount->name[t] = '\0';
+		nowAccount.name[t] = '\0';
 		
 		t = 0;
-		while(i < n && buf[i] != ':' )nowAccount->uid[t++] = buf[i++];
-		nowAccount->uid[t] = '\0';
+		while(user[t] != '\0')
+		{
+			nowAccount.uid[t] = iuid[t];
+			t = t + 1;
+		}
+		nowAccount.uid[t] = '\0';
       		
 		t = 0;
-		while(i < n && buf[i] != ':' )nowAccount->homePath[t++] = buf[i++];	
-		nowAccount->homePath[t] = '\0';
+		while(user[t] != '\0')
+		{
+			nowAccount.homePath[t] = ihomePath[t];
+			t = t + 1;
+		}
+		nowAccount.homePath[t] = '\0';
 			
 		t = 0;
-		while(i < n && buf[i] != ':' )nowAccount->groupIdList[t++] = buf[i++];	
-		nowAccount->groupIdList[t] = '\0';
-		
-		printf(1,"%s:%S:%s:%s", nowAccount->name, nowAccount->uid, nowAccount->homePath, nowAccount->groupIdList);
-		
+		while(user[t] != '\0')
+		{
+			nowAccount.groupIdList[t] = igroupIdList[t];
+			t = t + 1;
+		}
+		nowAccount.groupIdList[t] = '\0';
+				
       	return 1;
       }
       while(i <n && buf[i++] != '\n');
@@ -132,12 +164,12 @@ int main(void){
 
 char* getGroupIdList()
 {
-	return nowAccount->groupIdList;
+	return nowAccount.groupIdList;
 }
 
 char* getHomePath()
 {
-	return nowAccount->homePath;
+	return nowAccount.homePath;
 }
 
 
