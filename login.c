@@ -82,7 +82,7 @@ int checkpasswd(int fd, char *user, char *passwd){
 		nowAccount.name[t] = '\0';
 		
 		t = 0;
-		while(user[t] != '\0')
+		while(iuid[t] != '\0')
 		{
 			nowAccount.uid[t] = iuid[t];
 			t = t + 1;
@@ -90,7 +90,7 @@ int checkpasswd(int fd, char *user, char *passwd){
 		nowAccount.uid[t] = '\0';
       		
 		t = 0;
-		while(user[t] != '\0')
+		while(ihomePath[t] != '\0')
 		{
 			nowAccount.homePath[t] = ihomePath[t];
 			t = t + 1;
@@ -98,7 +98,7 @@ int checkpasswd(int fd, char *user, char *passwd){
 		nowAccount.homePath[t] = '\0';
 			
 		t = 0;
-		while(user[t] != '\0')
+		while(igroupIdList[t] != '\0')
 		{
 			nowAccount.groupIdList[t] = igroupIdList[t];
 			t = t + 1;
