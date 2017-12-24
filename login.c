@@ -10,9 +10,11 @@ struct account
 	char name[MAXLEN];
 	char uid[MAXLEN];
 	char homePath[MAXLEN];
-	char groupIdList[MAXLEN]
+	char groupIdList[MAXLEN];
 	
-}nowAccount;
+};
+
+struct account *nowAccount;
 
 int checkpasswd(int fd, char *user, char *passwd){
   int i, n, c, l, t;
@@ -49,19 +51,27 @@ int checkpasswd(int fd, char *user, char *passwd){
       	//printf(1,"%s\n", dirToCreate);
       	mkdir(dirToCreate);
 		
-		nowAccount.name = user;
+		t = 0;
+		while(user[t] != '\0')
+		{
+			nowAccount->name[t] = user[t];
+			t = t + 1;
+		}
+		nowAccount->name[t] = '\0';
 		
 		t = 0;
-		while(i < n && buf[i] != ':' )nowAccount.uid[t++] = buf[i++];
-		nowAccount.uid[t] = '\0';
+		while(i < n && buf[i] != ':' )nowAccount->uid[t++] = buf[i++];
+		nowAccount->uid[t] = '\0';
       		
 		t = 0;
-		while(i < n && buf[i] != ':' )nowAccount.homePath[t++] = buf[i++];	
-		nowAccount.homePath[t] = '\0'
+		while(i < n && buf[i] != ':' )nowAccount->homePath[t++] = buf[i++];	
+		nowAccount->homePath[t] = '\0';
 			
 		t = 0;
-		while(i < n && buf[i] != ':' )nowAccount.groupIdList[t++] = buf[i++];	
-		nowAccount.groupIdList[t] = '\0'
+		while(i < n && buf[i] != ':' )nowAccount->groupIdList[t++] = buf[i++];	
+		nowAccount->groupIdList[t] = '\0';
+		
+		printf(1,"%s:%S:%s:%s", nowAccount->name, nowAccount->uid, nowAccount->homePath, nowAccount->groupIdList);
 		
       	return 1;
       }
@@ -122,12 +132,12 @@ int main(void){
 
 char* getGroupIdList()
 {
-	return nowAccount.groupIdList;
+	return nowAccount->groupIdList;
 }
 
 char* getHomePath()
 {
-	return nowAccount.homePath;
+	return nowAccount->homePath;
 }
 
 
