@@ -16,6 +16,27 @@ struct account
 
 struct account nowAccount;
 
+
+char* getGroupIdList()
+{
+	return nowAccount.groupIdList;
+}
+
+char* getHomePath()
+{
+	return nowAccount.homePath;
+}
+
+char* getUid()
+{
+	return nowAccount.uid;
+}
+
+char* getName()
+{
+	return nowAccount.name;
+}
+
 int checkpasswd(int fd, char *user, char *passwd){
   int i, n, c, l, t;
   char ipasswd[MAXLEN];
@@ -161,17 +182,6 @@ int main(void){
 	//Unreachable line but I like to place it there
 	return 0;
 }
-
-char* getGroupIdList()
-{
-	return nowAccount.groupIdList;
-}
-
-char* getHomePath()
-{
-	return nowAccount.homePath;
-}
-
 
 
 
