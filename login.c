@@ -80,7 +80,7 @@ int checkpasswd(int fd, char *user, char *passwd){
 	  i++;
 	  
 	  l = 0;
-	  while(i <n && buf[i] != ':')igroupIdList[l++] = buf[i++];
+	  while(i <n && buf[i] != '\n')igroupIdList[l++] = buf[i++];
       if(i == n) break;
       igroupIdList[l] = '\0';
 	  
