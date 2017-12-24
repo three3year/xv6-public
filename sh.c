@@ -135,7 +135,7 @@ char * username;
 int getcmd(char *buf, int nbuf){
 						   
  
-  printf(2, "%s@FailOS:%s~$ ",username,path);
+  printf(2, "%s@OS:%s~$ ",username,path);
   memset(buf, 0, nbuf);
   gets(buf, nbuf);
   if(buf[0] == 0){ // EOF
