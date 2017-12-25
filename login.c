@@ -7,7 +7,7 @@
 char *argv[] = { "sh",  0};
 
 int checkpasswd(int fd, char *user, char *passwd){
-  int i, n, c, l, t;
+  int i, n, c, l;
   char ipasswd[MAXLEN];
   char buf[1024];
   l = c = 0;
