@@ -177,7 +177,7 @@ int main(int argc, char * argv[]){
     if(buf[0]!='\n'){
       write(bash, buf, strlen(buf));
     }
-    if(buf[0] == 'e' && buf[1] == 'x' && buf[2] == 'i' && buf[3] == 't'){
+    if(buf[0] == 'l' && buf[1] == 'o' && buf[2] == 'g' && buf[3] == 'o' && buf[4] == 'u' && buf[5] == 't'){
       exit();
     }
     else if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
