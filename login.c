@@ -2,40 +2,9 @@
 #include "user.h"
 #include "stat.h"
 #include "fcntl.h"
+#include "nowAccount.h"
 #define MAXLEN 30
 char *argv[] = { "sh",  0};
-
-struct account
-{
-	char name[MAXLEN];
-	char uid[MAXLEN];
-	char homePath[MAXLEN];
-	char groupIdList[MAXLEN];
-	
-};
-
-struct account nowAccount;
-
-
-char* getGroupIdList()
-{
-	return nowAccount.groupIdList;
-}
-
-char* getHomePath()
-{
-	return nowAccount.homePath;
-}
-
-char* getUid()
-{
-	return nowAccount.uid;
-}
-
-char* getName()
-{
-	return nowAccount.name;
-}
 
 int checkpasswd(int fd, char *user, char *passwd){
   int i, n, c, l, t;
