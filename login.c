@@ -95,8 +95,8 @@ int main(void){
 			  exit();
 			}
 			if(pid == 0){
-				char * uname[] = {username};
-			  exec("sh", uname);
+				char * data[] = {nowAccount.name, nowAccount.uid, nowAccount.groupIdList};
+			  exec("sh", data);
 			  printf(1, "login: exec sh failed\n");
 			  exit();
 			}

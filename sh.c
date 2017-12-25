@@ -132,6 +132,10 @@ runcmd(struct cmd *cmd)
 
 char path[256];
 char * username;
+char * uid;
+char * homePath;
+char * groupList;
+
 int getcmd(char *buf, int nbuf){
 						   
  
@@ -145,7 +149,12 @@ int getcmd(char *buf, int nbuf){
 }
 
 int main(int argc, char * argv[]){
+  
   username = argv[0];
+  uid = argv[1];
+  homePath = argv[2];
+  groupList = argv[3];
+  
   char * dir = malloc(100);
   //printf(1,"%s\n", username);
   static char buf[100];
