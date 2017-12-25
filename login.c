@@ -9,10 +9,6 @@ char *argv[] = { "sh",  0};
 int checkpasswd(int fd, char *user, char *passwd){
   int i, n, c, l, t;
   char ipasswd[MAXLEN];
-  char iuser[MAXLEN];
-  char iuid[MAXLEN];
-  char ihomePath[MAXLEN];
-  char igroupIdList[MAXLEN];
   char buf[1024];
   l = c = 0;
   //chop the \n
@@ -26,9 +22,9 @@ int checkpasswd(int fd, char *user, char *passwd){
   while((n = read(fd, buf, sizeof(buf))) > 0){
     for(i=0; i<n;) {
       if(l == 0){	
-      	while(i < n && buf[i] != ':' )iuser[c++] = buf[i++];
+      	while(i < n && buf[i] != ':' )nowAccount.name[c++] = buf[i++];
       	if(i == n) break; 
-      	iuser[c] = '\0';
+      	nowAccount.name[c] = '\0';
       	i++;
       }
       while(i <n && buf[i] != ':')ipasswd[l++] = buf[i++];
@@ -37,63 +33,31 @@ int checkpasswd(int fd, char *user, char *passwd){
 	  i++;
 	  
 	  l = 0;
-	  while(i <n && buf[i] != ':')iuid[l++] = buf[i++];
+	  while(i <n && buf[i] != ':')nowAccount.uid[l++] = buf[i++];
       if(i == n) break;
-      iuid[l] = '\0';
+      nowAccount.uid[l] = '\0';
 	  i++;
 	  
 	  l = 0;
-	  while(i <n && buf[i] != ':')ihomePath[l++] = buf[i++];
+	  while(i <n && buf[i] != ':')nowAccount.homePath[l++] = buf[i++];
       if(i == n) break;
-      ihomePath[l] = '\0';
+      nowAccount.homePath[l] = '\0';
 	  i++;
 	  
 	  l = 0;
-	  while(i <n && buf[i] != '\n')igroupIdList[l++] = buf[i++];
+	  while(i <n && buf[i] != '\n')nowAccount.groupIdList[l++] = buf[i++];
       if(i == n) break;
-      igroupIdList[l] = '\0';
+      nowAccount.groupIdList[l] = '\0';
 	  
       c = 0;
       l = 0;
-     //printf(1,"%s::%s\n", user,iuser);
+     //printf(1,"%s::%s\n", user,nowAccount.name);
      //printf(1,"%s::%s\n", passwd,ipasswd);
-      if(!strcmp(user,iuser) && !strcmp(passwd,ipasswd)){
+      if(!strcmp(user,nowAccount.name) && !strcmp(passwd,ipasswd)){
       	char * dirToCreate = "/home/";
       	strcpy(dirToCreate + strlen(dirToCreate), user);
       	//printf(1,"%s\n", dirToCreate);
       	mkdir(dirToCreate);
-		
-		t = 0;
-		while(user[t] != '\0')
-		{
-			nowAccount.name[t] = user[t];
-			t = t + 1;
-		}
-		nowAccount.name[t] = '\0';
-		
-		t = 0;
-		while(iuid[t] != '\0')
-		{
-			nowAccount.uid[t] = iuid[t];
-			t = t + 1;
-		}
-		nowAccount.uid[t] = '\0';
-      		
-		t = 0;
-		while(ihomePath[t] != '\0')
-		{
-			nowAccount.homePath[t] = ihomePath[t];
-			t = t + 1;
-		}
-		nowAccount.homePath[t] = '\0';
-			
-		t = 0;
-		while(igroupIdList[t] != '\0')
-		{
-			nowAccount.groupIdList[t] = igroupIdList[t];
-			t = t + 1;
-		}
-		nowAccount.groupIdList[t] = '\0';
 				
       	return 1;
       }
