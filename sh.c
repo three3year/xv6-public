@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "user.h"
+#include "stat.h"
 #include "fcntl.h"
 
 // Parsed command representation
@@ -12,6 +13,11 @@
 #define BACK  5
 
 #define MAXARGS 10
+
+char * username;
+char * uid;
+char * homePath;
+char * groupList;
 
 struct cmd {
   int type;
@@ -63,10 +69,12 @@ runcmd(struct cmd *cmd)
   struct listcmd *lcmd;
   struct pipecmd *pcmd;
   struct redircmd *rcmd;
+  int fd;
+  struct stat st;
 
   if(cmd == 0)
     exit();
-
+  
   switch(cmd->type){
   default:
     panic("runcmd");
@@ -75,6 +83,28 @@ runcmd(struct cmd *cmd)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit();
+
+    if((fd = open(ecmd->argv[0], 0)) < 0)
+    {
+	printf(2, "exec %s failed\n", ecmd->argv[0]);
+	close(fd);
+	exit();
+    }
+    if(fstat(fd, &st) < 0 || ((st.ownerid == stoi(uid)) && !(st.mode&0x100)) ||((st.groupid == stoi(groupList)) && !(st.mode&0x100)) || !(st.mode&0x1))
+    {
+	printf(2, "%s: cannot exec\n",ecmd->argv[0]);
+	close(fd);
+	exit();
+    }
+    //char** argvV;
+    //argvV = malloc(ecmd->argc)
+    int j = 0;
+    for(int i = 0;ecmd->argv[i];i++)
+    {
+	j++;
+    }
+    ecmd->argv[j] = uid;
+    ecmd->argv[j+1] = groupList;
     exec(ecmd->argv[0], ecmd->argv);
     printf(2, "exec %s failed\n", ecmd->argv[0]);
     break;
@@ -120,7 +150,7 @@ runcmd(struct cmd *cmd)
     wait();
     wait();
     break;
-
+    
   case BACK:
     bcmd = (struct backcmd*)cmd;
     if(fork1() == 0)
@@ -131,10 +161,7 @@ runcmd(struct cmd *cmd)
 }
 
 char path[256];
-char * username;
-char * uid;
-char * homePath;
-char * groupList;
+
 
 int getcmd(char *buf, int nbuf){
 						   
@@ -144,17 +171,15 @@ int getcmd(char *buf, int nbuf){
   gets(buf, nbuf);
   if(buf[0] == 0){ // EOF
     return -1;
-  }
+}
   return 0;
 }
 
 int main(int argc, char * argv[]){
-  
   username = argv[0];
   uid = argv[1];
   homePath = argv[2];
   groupList = argv[3];
-  
   char * dir = malloc(100);
   //printf(1,"%s\n", username);
   static char buf[100];
@@ -169,7 +194,7 @@ int main(int argc, char * argv[]){
   int lastPos = i;
   int fd;
   int bash;  
-
+  
   // Assumes three file descriptors open.
   while((fd = open("console", O_RDWR)) >= 0){
     if(fd >= 3){
@@ -177,7 +202,6 @@ int main(int argc, char * argv[]){
       break;
     }
   }
-  
   //Create file if it's not there
   bash = open("/.bash_history",O_CREATE | O_RDWR);
   // Read and run input commands.
@@ -193,11 +217,11 @@ int main(int argc, char * argv[]){
       // Clumsy but will have to do for now.
       // Chdir has no effect on the parent if run in the child.
       buf[strlen(buf)-1] = 0;  // chop \n
-      if(chdir(buf+3) < 0){
+      if(chdir(buf+3) < 0 || open(buf+3, 0)){
         printf(2, "cannot cd %s\n", buf+3);
-      }
+	}
       else{
-        if(buf[3] == '.' && buf[4] == '.'){
+       if(buf[3] == '.' && buf[4] == '.'){
           path[strlen(path)-1] = '\0';
           while(path[lastPos] != '/'){
             path[lastPos--] = '\0';
@@ -212,14 +236,14 @@ int main(int argc, char * argv[]){
           lastPos = 1;
         }
         else{
-          int iter = 3;
-          while(buf[iter] != '\0'){
+          int iter = 3;          
+	while(buf[iter] != '\0'){
             path[++lastPos] = buf[iter];
             iter++;
           }
           path[++lastPos] = '/';
-          path[++lastPos] = '\0';
-		  lastPos--;
+	  path[++lastPos] = '\0';
+	  lastPos--;
           iter = 3;
         }
       }
@@ -247,7 +271,7 @@ int main(int argc, char * argv[]){
     }
     
     wait();
-  }  
+  }
   close(bash);
   exit();
 }
@@ -263,7 +287,7 @@ int
 fork1(void)
 {
   int pid;
-
+  
   pid = fork();
   if(pid == -1)
     panic("fork");
@@ -348,7 +372,7 @@ gettoken(char **ps, char *es, char **q, char **eq)
 {
   char *s;
   int ret;
-
+  
   s = *ps;
   while(s < es && strchr(whitespace, *s))
     s++;
@@ -381,7 +405,7 @@ gettoken(char **ps, char *es, char **q, char **eq)
   }
   if(eq)
     *eq = s;
-
+  
   while(s < es && strchr(whitespace, *s))
     s++;
   *ps = s;
@@ -392,7 +416,7 @@ int
 peek(char **ps, char *es, char *toks)
 {
   char *s;
-
+  
   s = *ps;
   while(s < es && strchr(whitespace, *s))
     s++;
@@ -500,7 +524,7 @@ parseexec(char **ps, char *es)
   int tok, argc;
   struct execcmd *cmd;
   struct cmd *ret;
-
+  
   if(peek(ps, es, "("))
     return parseblock(ps, es);
 
@@ -539,7 +563,7 @@ nulterminate(struct cmd *cmd)
 
   if(cmd == 0)
     return 0;
-
+  
   switch(cmd->type){
   case EXEC:
     ecmd = (struct execcmd*)cmd;
@@ -558,7 +582,7 @@ nulterminate(struct cmd *cmd)
     nulterminate(pcmd->left);
     nulterminate(pcmd->right);
     break;
-
+    
   case LIST:
     lcmd = (struct listcmd*)cmd;
     nulterminate(lcmd->left);

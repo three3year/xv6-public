@@ -36,16 +36,27 @@ int
 main(int argc, char *argv[])
 {
   int fd, i;
+struct stat st;
 
-  if(argc <= 1){
+  if(argc <= 3){
     wc(0, "");
     exit();
   }
 
-  for(i = 1; i < argc; i++){
+  for(i = 1; i < argc-2; i++){
     if((fd = open(argv[i], 0)) < 0){
       printf(1, "wc: cannot open %s\n", argv[i]);
       exit();
+    }
+    if(stat(argv[i],&st)<0)
+    { 
+	printf(1, "wc: cannot stat %s\n", argv[i]);
+	exit();
+    }
+    if(chkSta(argv[argc-2],argv[argc-1],st.ownerid,st.groupid,st.mode,'r') < 0)
+    { 
+	printf(1, "wc: cannot read %s\n", argv[i]);
+	exit();
     }
     wc(fd, argv[i]);
     close(fd);

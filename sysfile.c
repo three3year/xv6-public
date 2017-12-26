@@ -11,8 +11,6 @@
 #include "mmu.h"
 #include "proc.h"
 #include "fs.h"
-#include "spinlock.h"
-#include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
 
@@ -26,7 +24,7 @@ argfd(int n, int *pfd, struct file **pf)
 
   if(argint(n, &fd) < 0)
     return -1;
-  if(fd < 0 || fd >= NOFILE || (f=myproc()->ofile[fd]) == 0)
+  if(fd < 0 || fd >= NOFILE || (f=proc->ofile[fd]) == 0)
     return -1;
   if(pfd)
     *pfd = fd;
@@ -41,11 +39,10 @@ static int
 fdalloc(struct file *f)
 {
   int fd;
-  struct proc *curproc = myproc();
 
   for(fd = 0; fd < NOFILE; fd++){
-    if(curproc->ofile[fd] == 0){
-      curproc->ofile[fd] = f;
+    if(proc->ofile[fd] == 0){
+      proc->ofile[fd] = f;
       return fd;
     }
   }
@@ -57,7 +54,7 @@ sys_dup(void)
 {
   struct file *f;
   int fd;
-
+  
   if(argfd(0, 0, &f) < 0)
     return -1;
   if((fd=fdalloc(f)) < 0)
@@ -95,10 +92,10 @@ sys_close(void)
 {
   int fd;
   struct file *f;
-
+  
   if(argfd(0, &fd, &f) < 0)
     return -1;
-  myproc()->ofile[fd] = 0;
+  proc->ofile[fd] = 0;
   fileclose(f);
   return 0;
 }
@@ -108,7 +105,7 @@ sys_fstat(void)
 {
   struct file *f;
   struct stat *st;
-
+  
   if(argfd(0, 0, &f) < 0 || argptr(1, (void*)&st, sizeof(*st)) < 0)
     return -1;
   return filestat(f, st);
@@ -260,11 +257,21 @@ create(char *path, short type, short major, short minor)
 
   if((ip = ialloc(dp->dev, type)) == 0)
     panic("create: ialloc");
+  uint x = 0x00000764;
+  uint y;
+  uchar *a = (uchar*)&y;
+  a[0] = x;
+  a[1] = x >> 8;
+  a[2] = x >> 16;
+  a[3] = x >> 24;
 
   ilock(ip);
   ip->major = major;
   ip->minor = minor;
   ip->nlink = 1;
+  ip->ownerid = (short)87;
+  ip->groupid = (short)1;
+  ip->mode = y;
   iupdate(ip);
 
   if(type == T_DIR){  // Create . and .. entries.
@@ -354,10 +361,11 @@ sys_mknod(void)
 {
   struct inode *ip;
   char *path;
+  int len;
   int major, minor;
-
+  
   begin_op();
-  if((argstr(0, &path)) < 0 ||
+  if((len=argstr(0, &path)) < 0 ||
      argint(1, &major) < 0 ||
      argint(2, &minor) < 0 ||
      (ip = create(path, T_DEV, major, minor)) == 0){
@@ -374,23 +382,22 @@ sys_chdir(void)
 {
   char *path;
   struct inode *ip;
-  struct proc *curproc = myproc();
-  
+
   begin_op();
   if(argstr(0, &path) < 0 || (ip = namei(path)) == 0){
     end_op();
     return -1;
   }
   ilock(ip);
-  if(ip->type != T_DIR){
+  if(ip->type != T_DIR /*|| !(ip->mode&0x100)*/){
     iunlockput(ip);
     end_op();
     return -1;
   }
   iunlock(ip);
-  iput(curproc->cwd);
+  iput(proc->cwd);
   end_op();
-  curproc->cwd = ip;
+  proc->cwd = ip;
   return 0;
 }
 
@@ -434,7 +441,7 @@ sys_pipe(void)
   fd0 = -1;
   if((fd0 = fdalloc(rf)) < 0 || (fd1 = fdalloc(wf)) < 0){
     if(fd0 >= 0)
-      myproc()->ofile[fd0] = 0;
+      proc->ofile[fd0] = 0;
     fileclose(rf);
     fileclose(wf);
     return -1;
@@ -442,4 +449,61 @@ sys_pipe(void)
   fd[0] = fd0;
   fd[1] = fd1;
   return 0;
+}
+
+int sys_chmod(void) {
+    char *path;
+    int mode;
+    struct inode *ip;
+    if(argstr(0, &path) < 0 || argint(1, &mode) < 0)
+        return -1;
+    begin_op();
+    if((ip = namei(path)) == 0) {
+        end_op();
+        return -1;
+    }
+    ilock(ip);
+    ip->mode = mode;
+    iupdate(ip); // Copy to disk
+    iunlockput(ip);
+    end_op();
+    return 0;
+}
+
+int sys_chown(void) {
+    char *path;
+    int owner;
+    struct inode *ip;
+    if(argstr(0, &path) < 0 || argint(1, &owner) < 0)
+        return -1;
+    begin_op();
+    if((ip = namei(path)) == 0) {
+        end_op();
+        return -1;
+    }
+    ilock(ip);
+    ip->ownerid = (short)owner;
+    iupdate(ip); // Copy to disk
+    iunlockput(ip);
+    end_op();
+    return 0;
+}
+
+int sys_chgup(void) {
+    char *path;
+    int group;
+    struct inode *ip;
+    if(argstr(0, &path) < 0 || argint(1, &group) < 0)
+        return -1;
+    begin_op();
+    if((ip = namei(path)) == 0) {
+        end_op();
+        return -1;
+    }
+    ilock(ip);
+    ip->groupid = (short)group;
+    iupdate(ip); // Copy to disk
+    iunlockput(ip);
+    end_op();
+    return 0;
 }

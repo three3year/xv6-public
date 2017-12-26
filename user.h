@@ -23,6 +23,9 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int chmod(char *, int);
+int chown(char *, int);
+int chgup(char *, int);
 
 // ulib.c
 int stat(char*, struct stat*);
@@ -37,3 +40,9 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+int getuser();
+int getgroup();
+int chkSta(char*,char*,int,int,int ,char);
+short stoi(char*);
+short ctoi(char);
+short mutiple(int);

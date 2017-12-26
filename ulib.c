@@ -96,10 +96,86 @@ void*
 memmove(void *vdst, void *vsrc, int n)
 {
   char *dst, *src;
-
+  
   dst = vdst;
   src = vsrc;
   while(n-- > 0)
     *dst++ = *src++;
   return vdst;
+}
+int getuser()
+{
+	return 87;
+}
+int getgroup()
+{
+	return 1;
+}
+int chkSta(char* userO,char* userG,int owner,int group,int mode,char st)
+{
+  int nowUser = stoi(userO);
+  int nowGroup = stoi(userG);
+  if(st == 'r')
+  {
+    if(owner == nowUser){
+	if(mode&0x400){
+	    return 0;
+	}
+    }
+    else if(group == nowGroup){
+	if(mode&0x40){
+	    return 0;
+    	}
+    }
+    else{
+	if(mode&0x4){
+	    return 0;
+	}
+    }
+  }
+  if(st == 'w')
+  {
+    if(owner == nowUser){
+	if(mode&0x200){
+	    return 0;
+	}
+    }
+    else if(group == nowGroup){
+	if(mode&0x20){
+	    return 0;
+    	}
+    }
+    else{
+	if(mode&0x2){
+	    return 0;
+	}
+    }
+  }
+return -1;
+}
+
+short stoi(char* input)
+{
+	short out = 0;
+	int i;
+	for(i = 0;input[i];i++)
+	;
+	for(int j = i-1;j>=0;j--)
+		out += ctoi(input[j]) * mutiple(i-j-1);
+	return out;
+}
+short ctoi(char input)
+{
+	return input-48;
+}
+short mutiple(int input)
+{
+	short out = 1;
+	while(input>0)
+	{
+		out *= 10;
+		input--;	
+	}
+	return out;
+
 }

@@ -15,13 +15,13 @@ OBJS = \
 	picirq.o\
 	pipe.o\
 	proc.o\
-	sleeplock.o\
 	spinlock.o\
 	string.o\
 	swtch.o\
 	syscall.o\
 	sysfile.o\
 	sysproc.o\
+	timer.o\
 	trapasm.o\
 	trap.o\
 	uart.o\
@@ -59,8 +59,6 @@ QEMU = $(shell if which qemu > /dev/null; \
 	then echo qemu; exit; \
 	elif which qemu-system-i386 > /dev/null; \
 	then echo qemu-system-i386; exit; \
-	elif which qemu-system-x86_64 > /dev/null; \
-	then echo qemu-system-x86_64; exit; \
 	else \
 	qemu=/Applications/Q.app/Contents/MacOS/i386-softmmu.app/Contents/MacOS/i386-softmmu; \
 	if test -x $$qemu; then echo $$qemu; exit; fi; fi; \
@@ -76,12 +74,12 @@ AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
-CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
-#CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fvar-tracking -fvar-tracking-assignments -O0 -g -Wall -MD -gdwarf-2 -m32 -Werror -fno-omit-frame-pointer
+#CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
+CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fvar-tracking -fvar-tracking-assignments -O0 -g -Wall -MD -gdwarf-2 -m32 -Werror -fno-omit-frame-pointer
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
-LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
+LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null)
 
 xv6.img: bootblock kernel fs.img
 	dd if=/dev/zero of=xv6.img count=10000
@@ -161,6 +159,10 @@ mkfs: mkfs.c fs.h
 UPROGS=\
 	_cat\
 	_echo\
+	_chowner\
+	_chmod\
+	_chgroup\
+	_createfile\
 	_forktest\
 	_grep\
 	_init\
@@ -173,13 +175,14 @@ UPROGS=\
 	_stressfs\
 	_usertests\
 	_wc\
+	_writeD\
 	_zombie\
 	_login\
 	_useradd\
 	_passwd\
 
-fs.img: mkfs README shadow $(UPROGS)
-	./mkfs fs.img README shadow $(UPROGS)
+fs.img: mkfs README README1 shadow $(UPROGS)
+	./mkfs fs.img README README1 shadow $(UPROGS)
 
 -include *.d
 
@@ -192,7 +195,7 @@ clean:
 
 # make a printout
 FILES = $(shell grep -v '^\#' runoff.list)
-PRINT = runoff.list runoff.spec README shadow toc.hdr toc.ftr $(FILES)
+PRINT = runoff.list runoff.spec README shadow README1 toc.hdr toc.ftr $(FILES)
 
 xv6.pdf: $(PRINT)
 	./runoff
@@ -215,13 +218,13 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 2
 endif
-QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
+QEMUOPTS = -hdb fs.img xv6.img -smp $(CPUS) -m 512 $(QEMUEXTRA)
 
 qemu: fs.img xv6.img
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
 qemu-memfs: xv6memfs.img
-	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
+	$(QEMU) xv6memfs.img -smp $(CPUS) -m 256
 
 qemu-nox: fs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
@@ -247,7 +250,7 @@ EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
 	printf.c umalloc.c\
-	README shadow dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
+	README shadow README1 dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 
 dist:
@@ -277,6 +280,6 @@ tar:
 	rm -rf /tmp/xv6
 	mkdir -p /tmp/xv6
 	cp dist/* dist/.gdbinit.tmpl /tmp/xv6
-	(cd /tmp; tar cf - xv6) | gzip >xv6-rev10.tar.gz  # the next one will be 10 (9/17)
+	(cd /tmp; tar cf - xv6) | gzip >xv6-rev5.tar.gz
 
 .PHONY: dist-test dist
