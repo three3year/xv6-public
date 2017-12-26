@@ -213,6 +213,7 @@ int main(int argc, char * argv[]){
         }
         else{
           int iter = 3;
+		  path[lastPos++] = '/';
           while(buf[iter] != '\0'){
             path[lastPos++] = buf[iter];
             iter++;
