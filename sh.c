@@ -217,7 +217,7 @@ int main(int argc, char * argv[]){
       // Clumsy but will have to do for now.
       // Chdir has no effect on the parent if run in the child.
       buf[strlen(buf)-1] = 0;  // chop \n
-      if(chdir(buf+3) < 0 || open(buf+3, 0)){
+      if(chdir(buf+3) < 0){
         printf(2, "cannot cd %s\n", buf+3);
 	}
       else{
