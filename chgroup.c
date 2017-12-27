@@ -4,7 +4,8 @@
 int
 main(int argc, char *argv[])
 {
-    if(argc < 3) { 
+    if(argc < 5) { 
+	 printf(1,"Usage: Specify filename and groupid, Ex.: chgroup filename groupid\n");
       exit();
 }
     int fd;

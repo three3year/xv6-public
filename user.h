@@ -46,3 +46,4 @@ int chkSta(char*,char*,int,int,int ,char);
 short stoi(char*);
 short ctoi(char);
 short mutiple(int);
+uint xint(uint);

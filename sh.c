@@ -90,7 +90,26 @@ runcmd(struct cmd *cmd)
 	close(fd);
 	exit();
     }
-    if(fstat(fd, &st) < 0 || ((st.ownerid == stoi(uid)) && !(st.mode&0x100)) ||((st.groupid == stoi(groupList)) && !(st.mode&0x100)) || !(st.mode&0x1))
+
+    if(fstat(fd, &st) < 0)
+    {
+	printf(2, "%s: cannot exec1\n",ecmd->argv[0]);
+	close(fd);
+	exit();
+    }
+if((st.ownerid == stoi(uid)) && !(st.mode&0x100))
+    {
+	printf(2, "%s: cannot exec\n",ecmd->argv[0]);
+	close(fd);
+	exit();
+    }
+else if((st.groupid == stoi(groupList)) && !(st.mode&0x10))
+    {
+	printf(2, "%s: cannot exec\n",ecmd->argv[0]);
+	close(fd);
+	exit();
+    }
+else if((st.ownerid != stoi(uid)) && (st.groupid != stoi(groupList)) && !(st.mode&0x1))
     {
 	printf(2, "%s: cannot exec\n",ecmd->argv[0]);
 	close(fd);
@@ -182,6 +201,7 @@ int main(int argc, char * argv[]){
   groupList = argv[3];
   char * dir = malloc(100);
   //printf(1,"%s\n", username);
+  struct stat st;
   static char buf[100];
   strcpy(dir , "/home/");
   strcpy(dir + strlen(dir), username);
@@ -217,7 +237,11 @@ int main(int argc, char * argv[]){
       // Clumsy but will have to do for now.
       // Chdir has no effect on the parent if run in the child.
       buf[strlen(buf)-1] = 0;  // chop \n
-      if(chdir(buf+3) < 0){
+	if(buf[3] != '.' && ((stat(buf+3,&st) < 0) || ((st.ownerid == stoi(uid)) && !(st.mode&0x100)) || ((st.groupid == stoi(groupList)) && !(st.mode&0x10)) || ((st.ownerid != stoi(uid)) && (st.groupid != stoi(groupList)) && !(st.mode&0x1))))
+      {
+	printf(2, "cannot cd %s\n", buf+3);
+      }
+      else if(chdir(buf+3) < 0){
         printf(2, "cannot cd %s\n", buf+3);
 	}
       else{

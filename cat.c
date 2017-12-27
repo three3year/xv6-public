@@ -22,7 +22,6 @@ main(int argc, char *argv[])
 {
   int fd, i;
   struct stat st;
-  printf(2,"%d\n",argc);
   if(argc <4){
     cat(0);
     exit();

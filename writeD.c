@@ -9,6 +9,10 @@ main(int argc, char *argv[])
 {
     int fd;
     struct stat st;
+    if(argc<5){
+	printf(1,"Usage: Specify filename and input, Ex.: writeD filename input...\n");
+	exit();
+}
 
     fd = open(argv[1], O_RDWR);
     if(fd < 0) {

@@ -269,8 +269,8 @@ create(char *path, short type, short major, short minor)
   ip->major = major;
   ip->minor = minor;
   ip->nlink = 1;
-  ip->ownerid = (short)87;
-  ip->groupid = (short)1;
+  ip->ownerid = (short)99;
+  ip->groupid = (short)0;
   ip->mode = y;
   iupdate(ip);
 

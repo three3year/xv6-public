@@ -5,6 +5,7 @@ int
 main(int argc, char *argv[])
 {
     if(argc < 5) {
+	printf(1,"Usage: Specify filename and ownerid, Ex.: chowner filename ownerid\n");
        exit();
 }
     int fd;

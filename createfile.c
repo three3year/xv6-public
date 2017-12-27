@@ -7,7 +7,7 @@ main(int argc, char *argv[])
 {
     int fd;
     if(argc < 3 || argc > 5){
-    	printf(1, "error: Illegal step\n");
+    	printf(1,"Usage: Specify filename, Ex.: createfile filename\n");
     	exit();
     }
 
